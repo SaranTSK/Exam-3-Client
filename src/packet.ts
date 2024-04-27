@@ -29,15 +29,19 @@ export interface IPacket
   // client to server
   recvError(errCode: string, errString: string): Promise<void>;
   recvChat(senderId: number, sender: string, message: string): Promise<void>;
+  recvPrivateChat(receiverId: number, message: string): Promise<void>;
   recvEnterUser(userId: number, displayName: string): Promise<void>;
   recvRemoveUser(userId: number): Promise<void>;
+  recvUserData(userId: number, displayName: string): Promise<void>;
 }
 
 const MAPPER: PacketMapper = {
   Error: dispatchError,
   Chat: dispatchChat,
+  PrivateChat: dispatchPrivateChat,
   EnterUser: dispatchEnterUser,
-  RemoveUser: dispatchRemoveUser
+  RemoveUser: dispatchRemoveUser,
+  UserData: dispatchUserData
 };
 
 async function dispatchError(remote: IPacket, data: any)
@@ -48,6 +52,10 @@ async function dispatchChat(remote: IPacket, data: any)
 {
   await remote.recvChat(data.senderId, data.sender, data.message);
 }
+async function dispatchPrivateChat(remote: IPacket, data: any)
+{
+  await remote.recvPrivateChat(data.receiverId, data.message);
+}
 async function dispatchEnterUser(remote: IPacket, data: any)
 {
   await remote.recvEnterUser(data.userId, data.displayName);
@@ -55,6 +63,10 @@ async function dispatchEnterUser(remote: IPacket, data: any)
 async function dispatchRemoveUser(remote: IPacket, data: any)
 {
   await remote.recvRemoveUser(data.userId);
+}
+async function dispatchUserData(remote: IPacket, data: any)
+{
+  await remote.recvUserData(data.userId, data.displayName);
 }
 
   // server to client
@@ -65,6 +77,7 @@ export function sendLogin(remote: IPacket|undefined, displayName: string)
   remote.send(JSON.stringify({ name: "Login", data: { displayName } }));
   console.log("client: sendLogin", { displayName });
 }
+
 export function sendChat(remote: IPacket|undefined, message: string)
 {
   if (remote === undefined || !remote.connected()) return;

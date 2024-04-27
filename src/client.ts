@@ -62,12 +62,16 @@ export class Client
       this.remote.setGameEvent({
         onError: async (errCode: string, errString: string) => { alertDialog(`${errCode}: ${errString}`); },
         onEnterUser: async (userId: number, displayName: string) => {  await this.sceneManager.addUser(userId, displayName); },
+        onUserData: async (userId: number, displayName: string) => {  await this.sceneManager.addUserData(userId, displayName); },
         onChatMessage: async (userId: number, displayName: string, message: string) => { await this.sceneManager.addChat(userId, displayName, message); },
+        onPrivateChatMessage: async (receiverId: number, message: string) => { await this.sceneManager.addPrivateChat(receiverId, message); },
         onRemoveUser: async (userId: number) => { await this.sceneManager.removeUser(userId); },
       });
 
       await this.sceneManager.createChatScene(displayName, (message) => {
         sendChat(this.remote, message);
+      }, (receieverId, message) => {
+        sendPrivateChat(this.remote, receieverId, message)
       });
 
       sendLogin(this.remote, displayName);

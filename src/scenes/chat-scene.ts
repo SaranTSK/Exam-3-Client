@@ -7,21 +7,27 @@ const LINE_MAX = 31;
 export class ChatScene extends Phaser.Scene
 {
   private users: Map<number, UserData>;
+  private ud?: UserData;
   private lines: string[];
   private onMessageEnter?: (message: string, ud?: UserData) => void;
+  private onPrivateMessageEnter?: (receiverId: number, message: string, ud?: UserData) => void;
   private chatArea?: Phaser.GameObjects.Text;
   private myName: string;
   private listArea: ListArea;
+  private receiverId?: number
 
-  public constructor(displayName: string, onMessageEnter?: (message: string, ud?: UserData) => void)
+  public constructor(displayName: string, onMessageEnter?: (message: string, ud?: UserData) => void, onPrivateMessageEnter?: (receiverId: number, message: string, ud?: UserData) => void)
   {
     super(NAME);
 
     this.users = new Map<number, UserData>();
+    this.ud = undefined;
     this.lines = [];
     this.listArea = new ListArea(this);
     this.onMessageEnter = onMessageEnter;
+    this.onPrivateMessageEnter = onPrivateMessageEnter;
     this.myName = displayName;
+    this.receiverId = undefined;
   }
 
   public getName() { return NAME; }
@@ -53,7 +59,11 @@ export class ChatScene extends Phaser.Scene
 
     const func = () => {
       if (msginput.value !== undefined && msginput.value !== "") {
-        this.onMessageEnter?.(msginput.value);
+        if(this.receiverId !== undefined) {
+          this.onPrivateMessageEnter?.(this.receiverId, msginput.value)
+        } else {
+          this.onMessageEnter?.(msginput.value);
+        }
         msginput.value = "";
       }
 
@@ -64,13 +74,28 @@ export class ChatScene extends Phaser.Scene
     sendbtn.setInteractive().on(Phaser.Input.Events.POINTER_UP, () => { func(); });
 
     this.listArea.onClickEvent((selected, ud) => {
+      this.receiverId = selected ? ud.userId : undefined;
       msginput.placeholder = selected ? "private message" : "public message";
     });
   }
 
   public chat(senderId: number, sender: string, chat: string)
   {
-    this.chatArea?.setText(this.makeLines(`${sender}: ${chat}`))
+    this.chatArea?.setText(this.makeLines(`[PUBLIC]${sender}[${senderId}]: ${chat}`))
+  }
+
+  public privateChat(receiverId: number, chat: string)
+  {
+    this.chatArea?.setText(this.makeLines(`[PRIVATE]${this.ud?.displayName}[${this.ud?.userId}]: ${chat}`))
+  }
+
+  public addUserData(userId: number, displayName: string)
+  {
+    console.log("addUserData", userId, displayName);
+    this.ud = {
+      userId,
+      displayName
+    };
   }
 
   public addUser(userId: number, displayName: string)

@@ -13,7 +13,9 @@ export interface GameEvent
 {
   onError: (errCode: string, errString: string) => void;
   onEnterUser: (userId: number, displayName: string) => void;
+  onUserData: (userId: number, displayName: string) => void;
   onChatMessage: (senderId: number, sender: string, message: string) => void;
+  onPrivateChatMessage: (receiverId: number, message: string) => void;
   onRemoveUser: (userId: number) => void;
 }
 
@@ -51,11 +53,25 @@ export class Remote implements IPacket
     this.gameEvent?.onEnterUser(userId, displayName);
   }
 
+  public async recvUserData(userId: number, displayName: string): Promise<void>
+  {
+    console.log("client: recvUserData", userId, displayName);
+
+    this.gameEvent?.onUserData(userId, displayName);
+  }
+
   public async recvChat(senderId: number, sender: string, message: string): Promise<void>
   {
     console.log("client: recvChat", senderId, sender, message);
 
     this.gameEvent?.onChatMessage(senderId, sender, message);
+  }
+
+  public async recvPrivateChat(receiverId: number, message: string): Promise<void>
+  {
+    console.log("client: recvPrivateChat", receiverId, message);
+
+    this.gameEvent?.onPrivateChatMessage(receiverId, message);
   }
 
   public async recvRemoveUser(userId: number): Promise<void>

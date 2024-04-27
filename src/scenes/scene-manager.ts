@@ -30,9 +30,9 @@ export class SceneManager
     })
   }
 
-  public async createChatScene(displayName: string, onChatEnter?: (message: string) => void)
+  public async createChatScene(displayName: string, onChatEnter?: (message: string) => void, onPrivateChatEnter?: (receiverId: number, message: string) => void)
   {
-    this.chatScene = new ChatScene(displayName, onChatEnter);
+    this.chatScene = new ChatScene(displayName, onChatEnter, onPrivateChatEnter);
 
     this.game.scene.add(this.chatScene.getName(), this.chatScene);
     this.game.scene.start(this.chatScene.getName());
@@ -45,9 +45,19 @@ export class SceneManager
     this.chatScene?.chat(senderId, sender, chat);
   }
 
+  public async addPrivateChat(receiverId: number, chat: string)
+  {
+    this.chatScene?.privateChat(receiverId, chat);
+  }
+
   public async addUser(userId: number, displayName: string)
   {
     this.chatScene?.addUser(userId, displayName);
+  }
+
+  public async addUserData(userId: number, displayName: string)
+  {
+    this.chatScene?.addUserData(userId, displayName);
   }
 
   public async removeUser(userId: number)
